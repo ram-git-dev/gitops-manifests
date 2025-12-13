@@ -1,0 +1,48 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xpostgresqlinstances.database.platform.io
+spec:
+  group: database.platform.io
+  names:
+    kind: XPostgreSQLInstance
+    plural: xpostgresqlinstances
+  claimNames:
+    kind: PostgreSQLInstance
+    plural: postgresqlinstances
+  
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              parameters:
+                type: object
+                properties:
+                  size:
+                    type: string
+                    description: "Database size: small, medium, or large"
+                    enum:
+                      - small
+                      - medium
+                      - large
+                    default: small
+                  
+                  storageGB:
+                    type: integer
+                    description: "Storage size in GB"
+                    default: 10
+                    minimum: 1
+                    maximum: 100
+                
+                required:
+                  - size
+            
+            required:
+              - parameters
