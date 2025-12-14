@@ -1,0 +1,9 @@
+apiVersion: database.platform.io/v1alpha1
+kind: PostgreSQLInstance
+metadata:
+  name: test-db
+  namespace: default
+spec:
+  parameters:
+    size: small
+    storageGB: 10
