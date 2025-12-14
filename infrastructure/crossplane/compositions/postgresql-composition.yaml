@@ -9,7 +9,9 @@ spec:
   compositeTypeRef:
     apiVersion: database.platform.io/v1alpha1
     kind: XPostgreSQLInstance
-  
+
+  mode: Resources
+
   resources:
     # PostgreSQL Deployment
     - name: postgresql-deployment
