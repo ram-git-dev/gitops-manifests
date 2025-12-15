@@ -9,29 +9,9 @@ spec:
   compositeTypeRef:
     apiVersion: database.platform.io/v1alpha1
     kind: XPostgreSQLInstance
-<<<<<<< Updated upstream
 
-  mode: Resources
-
-  resources:
-    # PostgreSQL Deployment
-    - name: postgresql-deployment
-      base:
-        apiVersion: kubernetes.crossplane.io/v1alpha1
-        kind: Object
-        spec:
-          forProvider:
-            manifest:
-              apiVersion: apps/v1
-              kind: Deployment
-              metadata:
-                name: postgresql
-                namespace: default
-=======
-  
-  # Modern API requires mode field (v1.11+)
   mode: Pipeline
-  
+
   pipeline:
     - step: patch-and-transform
       functionRef:
@@ -40,20 +20,23 @@ spec:
         apiVersion: pt.fn.crossplane.io/v1beta1
         kind: Resources
         resources:
+
+          # ----------------------------
           # PostgreSQL Deployment
+          # ----------------------------
           - name: postgresql-deployment
             base:
               apiVersion: kubernetes.crossplane.io/v1alpha1
               kind: Object
->>>>>>> Stashed changes
               spec:
+                providerConfigRef:
+                  name: kubernetes-provider
                 forProvider:
                   manifest:
                     apiVersion: apps/v1
                     kind: Deployment
                     metadata:
                       name: postgresql
-                      namespace: default
                     spec:
                       replicas: 1
                       selector:
@@ -65,45 +48,39 @@ spec:
                             app: postgresql
                         spec:
                           containers:
-                          - name: postgresql
-                            image: postgres:15-alpine
-                            ports:
-                            - containerPort: 5432
-                            env:
-                            - name: POSTGRES_DB
-                              value: appdb
-                            - name: POSTGRES_USER
-                              value: appuser
-                            - name: POSTGRES_PASSWORD
-                              value: changeme123
-                            resources:
-                              requests:
-                                cpu: 100m
-                                memory: 256Mi
-                              limits:
-                                cpu: 500m
-                                memory: 512Mi
-                            volumeMounts:
-                            - name: data
-                              mountPath: /var/lib/postgresql/data
-                              subPath: postgres
+                            - name: postgresql
+                              image: postgres:15-alpine
+                              ports:
+                                - containerPort: 5432
+                              env:
+                                - name: POSTGRES_DB
+                                  value: appdb
+                                - name: POSTGRES_USER
+                                  value: appuser
+                                - name: POSTGRES_PASSWORD
+                                  value: changeme123
+                              resources:
+                                requests:
+                                  cpu: 100m
+                                  memory: 256Mi
+                                limits:
+                                  cpu: 500m
+                                  memory: 512Mi
+                              volumeMounts:
+                                - name: data
+                                  mountPath: /var/lib/postgresql/data
                           volumes:
-                          - name: data
-                            emptyDir: {}
-                providerConfigRef:
-                  name: kubernetes-provider
-            
+                            - name: data
+                              emptyDir: {}
+
             patches:
-              - type: FromCompositeFieldPath
-                fromFieldPath: metadata.name
+              - fromFieldPath: metadata.name
                 toFieldPath: spec.forProvider.manifest.metadata.name
-              
-              - type: FromCompositeFieldPath
-                fromFieldPath: metadata.labels['crossplane.io/claim-namespace']
+
+              - fromFieldPath: metadata.labels['crossplane.io/claim-namespace']
                 toFieldPath: spec.forProvider.manifest.metadata.namespace
-              
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.size
+
+              - fromFieldPath: spec.parameters.size
                 toFieldPath: spec.forProvider.manifest.spec.template.spec.containers[0].resources.requests.memory
                 transforms:
                   - type: map
@@ -111,127 +88,54 @@ spec:
                       small: "256Mi"
                       medium: "512Mi"
                       large: "1Gi"
-              
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.size
-                toFieldPath: spec.forProvider.manifest.spec.template.spec.containers[0].resources.limits.memory
-                transforms:
-                  - type: map
-                    map:
-                      small: "512Mi"
-                      medium: "1Gi"
-                      large: "2Gi"
-          
+
+          # ----------------------------
           # PostgreSQL Service
+          # ----------------------------
           - name: postgresql-service
             base:
               apiVersion: kubernetes.crossplane.io/v1alpha1
               kind: Object
               spec:
+                providerConfigRef:
+                  name: kubernetes-provider
                 forProvider:
                   manifest:
                     apiVersion: v1
                     kind: Service
                     metadata:
                       name: postgresql
-                      namespace: default
                     spec:
                       selector:
                         app: postgresql
                       ports:
-                      - port: 5432
-                        targetPort: 5432
+                        - port: 5432
+                          targetPort: 5432
                       type: ClusterIP
-                providerConfigRef:
-                  name: kubernetes-provider
-            
+
             patches:
-              - type: FromCompositeFieldPath
-                fromFieldPath: metadata.name
+              - fromFieldPath: metadata.name
                 toFieldPath: spec.forProvider.manifest.metadata.name
-              
-              - type: FromCompositeFieldPath
-                fromFieldPath: metadata.labels['crossplane.io/claim-namespace']
+
+              - fromFieldPath: metadata.labels['crossplane.io/claim-namespace']
                 toFieldPath: spec.forProvider.manifest.metadata.namespace
-          
+
+          # ----------------------------
           # Connection Secret
+          # ----------------------------
           - name: connection-secret
             base:
               apiVersion: kubernetes.crossplane.io/v1alpha1
               kind: Object
               spec:
-<<<<<<< Updated upstream
-                selector:
-                  app: postgresql
-                ports:
-                - port: 5432
-                  targetPort: 5432
-                type: ClusterIP
-          providerConfigRef:
-            name: kubernetes-provider
-      
-      patches:
-        - type: FromCompositeFieldPath
-          fromFieldPath: metadata.name
-          toFieldPath: spec.forProvider.manifest.metadata.name
-        
-        - type: FromCompositeFieldPath
-          fromFieldPath: metadata.labels['crossplane.io/claim-namespace']
-          toFieldPath: spec.forProvider.manifest.metadata.namespace
-    
-    # Connection Secret
-    - name: connection-secret
-      base:
-        apiVersion: kubernetes.crossplane.io/v1alpha1
-        kind: Object
-        spec:
-          forProvider:
-            manifest:
-              apiVersion: v1
-              kind: Secret
-              metadata:
-                name: postgresql-credentials
-                namespace: default
-              type: Opaque
-              stringData:
-                host: postgresql
-                port: "5432"
-                database: appdb
-                username: appuser
-                password: changeme123
-                connectionString: postgresql://appuser:changeme123@postgresql:5432/appdb
-          providerConfigRef:
-            name: kubernetes-provider
-      
-      patches:
-        - type: FromCompositeFieldPath
-          fromFieldPath: metadata.name
-          toFieldPath: spec.forProvider.manifest.metadata.name
-          transforms:
-            - type: string
-              string:
-                fmt: "%s-credentials"
-        
-        - type: FromCompositeFieldPath
-          fromFieldPath: metadata.labels['crossplane.io/claim-namespace']
-          toFieldPath: spec.forProvider.manifest.metadata.namespace
-        
-        - type: CombineFromComposite
-          combine:
-            variables:
-            - fromFieldPath: metadata.name
-            strategy: string
-            string:
-              fmt: "postgresql://appuser:changeme123@%s:5432/appdb"
-          toFieldPath: spec.forProvider.manifest.stringData.connectionString
-=======
+                providerConfigRef:
+                  name: kubernetes-provider
                 forProvider:
                   manifest:
                     apiVersion: v1
                     kind: Secret
                     metadata:
                       name: postgresql-credentials
-                      namespace: default
                     type: Opaque
                     stringData:
                       host: postgresql
@@ -239,29 +143,16 @@ spec:
                       database: appdb
                       username: appuser
                       password: changeme123
-                      connectionString: postgresql://appuser:changeme123@postgresql:5432/appdb
-                providerConfigRef:
-                  name: kubernetes-provider
-            
+
             patches:
-              - type: FromCompositeFieldPath
-                fromFieldPath: metadata.name
+              # Secret name = <claim-name>-credentials
+              - fromFieldPath: metadata.name
                 toFieldPath: spec.forProvider.manifest.metadata.name
                 transforms:
                   - type: string
                     string:
+                      type: Format
                       fmt: "%s-credentials"
-              
-              - type: FromCompositeFieldPath
-                fromFieldPath: metadata.labels['crossplane.io/claim-namespace']
+
+              - fromFieldPath: metadata.labels['crossplane.io/claim-namespace']
                 toFieldPath: spec.forProvider.manifest.metadata.namespace
-              
-              - type: CombineFromComposite
-                combine:
-                  variables:
-                  - fromFieldPath: metadata.name
-                  strategy: string
-                  string:
-                    fmt: "postgresql://appuser:changeme123@%s:5432/appdb"
-                toFieldPath: spec.forProvider.manifest.stringData.connectionString
->>>>>>> Stashed changes
