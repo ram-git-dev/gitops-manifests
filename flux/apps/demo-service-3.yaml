@@ -1,0 +1,13 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: demo-service-3
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  path: ./apps/demo-service-3
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: gitops-manifests
