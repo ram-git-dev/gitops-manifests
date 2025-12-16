@@ -1,0 +1,11 @@
+
+apiVersion: database.platform.io/v1alpha1
+kind: PostgreSQLInstance
+metadata:
+  name: nodejs-app-1-db
+  namespace: nodejs-app-1
+spec:
+  parameters:
+    size: small
+    storageGB: 10
+
