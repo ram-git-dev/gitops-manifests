@@ -68,7 +68,7 @@ spec:
         app: nodejs-app-2
       annotations:
         summary: "High error rate in nodejs-app-2"
-        description: "Error rate is above 5% for {{ "{{" }}$labels.method{{ "}}" }} {{ "{{" }}$labels.path{{ "}}" }}"
+        description: "Error rate is above 5%"
     
     # Alert: Deployment has no replicas available
     - alert: DeploymentReplicasUnavailable
@@ -90,4 +90,4 @@ spec:
         app: nodejs-app-2
       annotations:
         summary: "High database connections for nodejs-app-2"
-        description: "Database has {{ "{{" }}$value{{ "}}" }} active connections"
+        description: "Database has high active connections"
