@@ -1,0 +1,93 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: nodejs-app-2-alerts
+  namespace: nodejs-app-2
+  labels:
+    app: nodejs-app-2
+    release: kube-prometheus-stack
+spec:
+  groups:
+  - name: nodejs-app-2.rules
+    interval: 30s
+    rules:
+    # Alert: Pod is down
+    - alert: PodDown
+      expr: up{namespace="nodejs-app-2", job="nodejs-app-2"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        app: nodejs-app-2
+      annotations:
+        summary: "Pod nodejs-app-2 is down"
+        description: "Pod has been down for more than 5 minutes"
+    
+    # Alert: High CPU usage
+    - alert: HighCPUUsage
+      expr: rate(container_cpu_usage_seconds_total{namespace="nodejs-app-2"}[5m]) > 0.8
+      for: 10m
+      labels:
+        severity: warning
+        app: nodejs-app-2
+      annotations:
+        summary: "High CPU usage in nodejs-app-2"
+        description: "CPU usage is above 80% for more than 10 minutes"
+    
+    # Alert: High memory usage
+    - alert: HighMemoryUsage
+      expr: |
+        (container_memory_usage_bytes{namespace="nodejs-app-2"} / 
+         container_spec_memory_limit_bytes{namespace="nodejs-app-2"}) > 0.85
+      for: 10m
+      labels:
+        severity: warning
+        app: nodejs-app-2
+      annotations:
+        summary: "High memory usage in nodejs-app-2"
+        description: "Memory usage is above 85% of limit"
+    
+    # Alert: Pod restarts
+    - alert: PodRestarting
+      expr: rate(kube_pod_container_status_restarts_total{namespace="nodejs-app-2"}[15m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+        app: nodejs-app-2
+      annotations:
+        summary: "Pod is restarting in nodejs-app-2"
+        description: "Pod {{ "{{" }}$labels.pod{{ "}}" }} has restarted {{ "{{" }}$value{{ "}}" }} times in the last 15 minutes"
+    
+    # Alert: High error rate
+    - alert: HighErrorRate
+      expr: |
+        rate(http_requests_total{namespace="nodejs-app-2", status=~"5.."}[5m]) /
+        rate(http_requests_total{namespace="nodejs-app-2"}[5m]) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+        app: nodejs-app-2
+      annotations:
+        summary: "High error rate in nodejs-app-2"
+        description: "Error rate is above 5% for {{ "{{" }}$labels.method{{ "}}" }} {{ "{{" }}$labels.path{{ "}}" }}"
+    
+    # Alert: Deployment has no replicas available
+    - alert: DeploymentReplicasUnavailable
+      expr: kube_deployment_status_replicas_available{namespace="nodejs-app-2"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        app: nodejs-app-2
+      annotations:
+        summary: "Deployment nodejs-app-2 has no available replicas"
+        description: "All pods are down"
+    
+    # Alert: Database connection issues
+    - alert: DatabaseConnectionHigh
+      expr: pg_stat_activity_count{namespace="nodejs-app-2"} > 80
+      for: 10m
+      labels:
+        severity: warning
+        app: nodejs-app-2
+      annotations:
+        summary: "High database connections for nodejs-app-2"
+        description: "Database has {{ "{{" }}$value{{ "}}" }} active connections"
