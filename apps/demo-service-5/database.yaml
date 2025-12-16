@@ -1,0 +1,11 @@
+
+apiVersion: database.platform.io/v1alpha1
+kind: PostgreSQLInstance
+metadata:
+  name: demo-service-5-db
+  namespace: demo-service-5
+spec:
+  parameters:
+    size: small
+    storageGB: 10
+
