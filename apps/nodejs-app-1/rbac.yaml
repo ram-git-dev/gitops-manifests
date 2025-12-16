@@ -1,0 +1,68 @@
+# Service Account for the application
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nodejs-app-1
+  namespace: nodejs-app-1
+  labels:
+    app: nodejs-app-1
+---
+# Developer Role - can view and debug but not modify production
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nodejs-app-1-developer
+  namespace: nodejs-app-1
+rules:
+- apiGroups: [""]
+  resources: ["pods", "pods/log", "pods/status"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["services", "configmaps", "secrets"]
+  verbs: ["get", "list"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["get", "list", "watch"]
+---
+# Admin Role - full control over the namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nodejs-app-1-admin
+  namespace: nodejs-app-1
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+# Bind the service account to minimal permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: nodejs-app-1-app-binding
+  namespace: nodejs-app-1
+subjects:
+- kind: ServiceAccount
+  name: nodejs-app-1
+  namespace: nodejs-app-1
+roleRef:
+  kind: Role
+  name: nodejs-app-1-app
+  apiGroup: rbac.authorization.k8s.io
+---
+# Minimal app permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nodejs-app-1-app
+  namespace: nodejs-app-1
+rules:
+- apiGroups: [""]
+  resources: ["secrets", "configmaps"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get"]
