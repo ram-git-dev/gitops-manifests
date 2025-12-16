@@ -47,15 +47,15 @@ spec:
         description: "Memory usage is above 85% of limit"
     
     # Alert: Pod restarts
-    - alert: PodRestarting
-      expr: rate(kube_pod_container_status_restarts_total{namespace="nodejs-app-2"}[15m]) > 0
-      for: 5m
-      labels:
-        severity: warning
-        app: nodejs-app-2
-      annotations:
-        summary: "Pod is restarting in nodejs-app-2"
-        description: "Pod {{ "{{" }}$labels.pod{{ "}}" }} has restarted {{ "{{" }}$value{{ "}}" }} times in the last 15 minutes"
+    #- alert: PodRestarting
+    #  expr: rate(kube_pod_container_status_restarts_total{namespace="nodejs-app-2"}[15m]) > 0
+    #  for: 5m
+    #  labels:
+    #    severity: warning
+    #    app: nodejs-app-2
+    #  annotations:
+    #    summary: "Pod is restarting in nodejs-app-2"
+    #    description: "Pod {{ "{{" }}$labels.pod{{ "}}" }} has restarted {{ "{{" }}$value{{ "}}" }} times in the last 15 minutes"
     
     # Alert: High error rate
     - alert: HighErrorRate
