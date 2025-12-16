@@ -1,0 +1,93 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: demo-service-6-alerts
+  namespace: demo-service-6
+  labels:
+    app: demo-service-6
+    release: kube-prometheus-stack
+spec:
+  groups:
+  - name: demo-service-6.rules
+    interval: 30s
+    rules:
+    # Alert: Pod is down
+    - alert: PodDown
+      expr: up{namespace="demo-service-6", job="demo-service-6"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        app: demo-service-6
+      annotations:
+        summary: "Pod demo-service-6 is down"
+        description: "Pod has been down for more than 5 minutes"
+    
+    # Alert: High CPU usage
+    - alert: HighCPUUsage
+      expr: rate(container_cpu_usage_seconds_total{namespace="demo-service-6"}[5m]) > 0.8
+      for: 10m
+      labels:
+        severity: warning
+        app: demo-service-6
+      annotations:
+        summary: "High CPU usage in demo-service-6"
+        description: "CPU usage is above 80% for more than 10 minutes"
+    
+    # Alert: High memory usage
+    - alert: HighMemoryUsage
+      expr: |
+        (container_memory_usage_bytes{namespace="demo-service-6"} / 
+         container_spec_memory_limit_bytes{namespace="demo-service-6"}) > 0.85
+      for: 10m
+      labels:
+        severity: warning
+        app: demo-service-6
+      annotations:
+        summary: "High memory usage in demo-service-6"
+        description: "Memory usage is above 85% of limit"
+    
+    # Alert: Pod restarts
+    - alert: PodRestarting
+      expr: rate(kube_pod_container_status_restarts_total{namespace="demo-service-6"}[15m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+        app: demo-service-6
+      annotations:
+        summary: "Pod is restarting in demo-service-6"
+        description: "Pod {{ "{{" }}$labels.pod{{ "}}" }} has restarted {{ "{{" }}$value{{ "}}" }} times in the last 15 minutes"
+    
+    # Alert: High error rate
+    - alert: HighErrorRate
+      expr: |
+        rate(http_requests_total{namespace="demo-service-6", status=~"5.."}[5m]) /
+        rate(http_requests_total{namespace="demo-service-6"}[5m]) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+        app: demo-service-6
+      annotations:
+        summary: "High error rate in demo-service-6"
+        description: "Error rate is above 5% for {{ "{{" }}$labels.method{{ "}}" }} {{ "{{" }}$labels.path{{ "}}" }}"
+    
+    # Alert: Deployment has no replicas available
+    - alert: DeploymentReplicasUnavailable
+      expr: kube_deployment_status_replicas_available{namespace="demo-service-6"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        app: demo-service-6
+      annotations:
+        summary: "Deployment demo-service-6 has no available replicas"
+        description: "All pods are down"
+    
+    # Alert: Database connection issues
+    - alert: DatabaseConnectionHigh
+      expr: pg_stat_activity_count{namespace="demo-service-6"} > 80
+      for: 10m
+      labels:
+        severity: warning
+        app: demo-service-6
+      annotations:
+        summary: "High database connections for demo-service-6"
+        description: "Database has {{ "{{" }}$value{{ "}}" }} active connections"
