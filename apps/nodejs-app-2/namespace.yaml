@@ -4,7 +4,7 @@ metadata:
   name: nodejs-app-2
   labels:
     app: nodejs-app-2
-    owner: user:default/ram-git-dev
+    owner: ram-git-dev
     managed-by: backstage
 ---
 apiVersion: v1
